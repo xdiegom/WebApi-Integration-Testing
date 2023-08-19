@@ -1,14 +1,13 @@
 ﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using WebApiIntegrationTesting.DataAccess.Context;
 using WebApiIntegrationTesting.DataAccess.Repositories;
+using Xunit;
 
 namespace WebApiIntegrationTesting.IntegrationTests.ControllerTests
 {
@@ -25,9 +24,23 @@ namespace WebApiIntegrationTesting.IntegrationTests.ControllerTests
         {
             base.ConfigureWebHost(builder);
 
+            builder.ConfigureAppConfiguration((hostingContext, config) =>
+            {
+                config.AddJsonFile("appsettings.Test.json", optional: false, reloadOnChange: true);
+            });
+
             builder.ConfigureTestServices(services =>
             {
-                services.AddSingleton(ReviewRepositoryMock.Object);
+                var webHostBuilder = builder.ConfigureServices(services =>
+                {
+                    var configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
+                    string connectionString = configuration.GetConnectionString("DefaultConnectionString")!;
+
+                    services.AddDbContext<ReviewContext>(options =>
+                    {
+                        options.UseSqlServer(connectionString);
+                    });
+                });
             });
         }
     }

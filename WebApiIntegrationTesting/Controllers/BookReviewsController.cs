@@ -5,7 +5,6 @@ using WebApiIntegrationTesting.DataAccess.Repositories;
 namespace WebApiIntegrationTesting.Controllers
 {
     [Route("[controller]")]
-    [ApiController]
     public class BookReviewsController : ControllerBase
     {
         private readonly IReviewRepository _reviewRepository;
@@ -66,9 +65,6 @@ namespace WebApiIntegrationTesting.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public ActionResult<int> Post([FromBody] BookReview review)
         {
-            if (!ValidateReview(review))
-                return UnprocessableEntity();
-
             _reviewRepository.Create(review);
             _reviewRepository.SaveChanges();
 
@@ -83,9 +79,6 @@ namespace WebApiIntegrationTesting.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult Put(int id, [FromBody] BookReview review)
         {
-            if (!ValidateReview(review))
-                return UnprocessableEntity();
-
             var result = _reviewRepository.AllReviews.SingleOrDefault(r => r.Id == id);
 
             if (result == null)
